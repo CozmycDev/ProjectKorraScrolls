@@ -24,7 +24,6 @@
 ### ⚙️ Extensive Configuration Options
 
 * **Global Settings**: Adjust the overall behavior of scroll drops, loot generation, and trial rewards.
-* **Element-Specific Settings**: Define how scrolls behave for each bending element and sub-element.
 * **Ability-Specific Settings**: Fine-tune individual abilities with parameters like unlock count, drop eligibility, and loot weights.
 * **Message Customization**: Personalize in-game messages related to scrolls and abilities.
 
@@ -282,5 +281,27 @@ defaultWeight: 1.0
 
 * **ProjectKorra**: 1.12.0
 * **Minecraft Versions**: 1.21.4+
+
+---
+
+## 🛣️ Roadmap
+
+The ProjectKorraScrolls plugin is continuously evolving to enhance the bending experience on your server. Here's a glimpse into our upcoming plans:
+
+### 🔄 Enhanced Compatibility with Core
+
+* **Support for All Abilities**: We are still working to ensure full compatibility with all Core abilities. Very few abilities, like AirAgility, aren't compatible, yet.
+### 📈 Scroll-Based Ability Enhancements
+
+* **Attribute Upgrades via Scrolls**: In the future, players will be able to read additional scrolls for abilities they've already unlocked to permanently enhance specific attributes of those abilities. For example, reading more "FireBlast" scrolls could increase its damage or reduce its cooldown.
+
+### 🛠️ Overhaul of the Events System
+
+* **Granular Control over Scroll Generation**: We're planning a comprehensive overhaul of the current events system to provide server owners with more precise control over scroll generation. This includes:
+
+    * **Customizable Drop Conditions**: Define specific conditions under which scrolls can drop, such as time of day, biome, or player level.
+    * **More Event-Based Triggers**: Introduce new event triggers for scroll generation, allowing for more dynamic and context-sensitive scroll drops.
+
+Stay tuned for updates as we continue to develop and refine these features.
 
 ---
