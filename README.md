@@ -1,5 +1,3 @@
----
-
 # ProjectKorraScrolls
 
 **ProjectKorraScrolls** is a Minecraft plugin designed for servers using the [ProjectKorra](https://projectkorra.com/) bending plugin. It introduces an immersive progression mechanic where players must discover and collect "scrolls" to unlock bending abilities. These scrolls can be obtained through various in-game activities, adding depth and exploration to the bending experience.
