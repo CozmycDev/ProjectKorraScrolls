@@ -23,6 +23,8 @@ public class ScrollUpdateListener implements Listener {
             return;
         }
 
+        int count = clickedItem.getAmount();
+
         if (!ScrollItemFactory.isScroll(clickedItem)) {
             return;
         }
@@ -40,6 +42,7 @@ public class ScrollUpdateListener implements Listener {
         }
 
         ItemStack updatedScroll = ScrollItemFactory.createScroll(scroll);
+        updatedScroll.setAmount(count);
 
         ProjectKorraScrolls.getInstance().debugLog("Updating scroll item for ability: " + abilityName);
         event.setCurrentItem(updatedScroll);

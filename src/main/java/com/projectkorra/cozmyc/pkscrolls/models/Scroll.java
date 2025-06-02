@@ -1,5 +1,6 @@
 package com.projectkorra.cozmyc.pkscrolls.models;
 
+import com.projectkorra.cozmyc.pkscrolls.ProjectKorraScrolls;
 import com.projectkorra.projectkorra.Element;
 import com.projectkorra.projectkorra.ability.CoreAbility;
 import org.bukkit.configuration.ConfigurationSection;
@@ -20,6 +21,11 @@ public class Scroll {
     private final boolean canTrialLoot;
     private final String[] description;
     private final CoreAbility coreAbility;
+    private final String consumeMessage;
+    private final String unlockMessage;
+    private final String alreadyUnlockedMessage;
+    private final String abilityBoundMessage;
+    private final String slotAlreadyBoundMessage;
 
     public Scroll(String abilityName, ConfigurationSection config) {
         this.abilityName = abilityName;
@@ -36,6 +42,21 @@ public class Scroll {
         this.canTrialLoot = config.getBoolean("canTrialLoot", true);
         this.description = config.getStringList("description").toArray(new String[0]);
         this.coreAbility = CoreAbility.getAbility(abilityName);
+
+        ConfigurationSection messagesSection = config.getConfigurationSection("messages");
+        if (messagesSection != null) {
+            this.consumeMessage = messagesSection.getString("consume");
+            this.unlockMessage = messagesSection.getString("unlock");
+            this.alreadyUnlockedMessage = messagesSection.getString("alreadyUnlocked");
+            this.abilityBoundMessage = messagesSection.getString("abilityBound");
+            this.slotAlreadyBoundMessage = messagesSection.getString("slotAlreadyBound");
+        } else {
+            this.consumeMessage = null;
+            this.unlockMessage = null;
+            this.alreadyUnlockedMessage = null;
+            this.abilityBoundMessage = null;
+            this.slotAlreadyBoundMessage = null;
+        }
     }
 
     public String getAbilityName() {
@@ -92,5 +113,25 @@ public class Scroll {
 
     public String[] getDescription() {
         return description;
+    }
+
+    public String getConsumeMessage() {
+        return consumeMessage;
+    }
+
+    public String getUnlockMessage() {
+        return unlockMessage;
+    }
+
+    public String getAlreadyUnlockedMessage() {
+        return alreadyUnlockedMessage;
+    }
+
+    public String getAbilityBoundMessage() {
+        return abilityBoundMessage;
+    }
+
+    public String getSlotAlreadyBoundMessage() {
+        return slotAlreadyBoundMessage;
     }
 }

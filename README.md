@@ -38,7 +38,7 @@
 Configure overarching behaviors for scroll distribution and player progression.
 
 ```yaml
-# ProjectKorraScrolls Default Configuration
+# ProjectKorraScrolls Configuration
 
 # Debug settings
 debug:
@@ -53,7 +53,7 @@ settings:
 
   # Early Game Rewards - give new players a small boost with rewards specific to their element
   earlyGameRewards:
-    enabled: true  # Whether to give players bonus scrolls for their first log broken, crop planted, and bed slept in.
+    enabled: false  # Whether to give players bonus scrolls for their first log broken, crop planted, and bed slept in.
     amount: 3  # Number of scrolls to give for each milestone (always identical copies)
     playerElementOnly: true  # Whether these should be scrolls from player's elements only
     includeSubelements: false  # Whether to include subelement scrolls when filtering by element
@@ -104,7 +104,7 @@ elementColors:
 
 # Messages
 messages:
-  prefix: "&8[&bPKScrolls&8] &r"
+  prefix: "&8[&ePK&bScrolls&8] &r"
 
   # General messages
   noPermission: "&cYou don't have permission to use this command."
@@ -116,8 +116,10 @@ messages:
 
   # Scroll consume messages
   scrollConsumed: "&aYou read the %ability%&a scroll! &8[&e%progress%&7/&e%total%&8]"
-  abilityUnlocked: "&aYou've learned how to use &e%ability%&a! &8[&b/b bind %ability%&8]"
+  abilityUnlocked: "&aYou've learned how to use &e%ability%&a!"
   alreadyUnlocked: "&cYou already know this ability!"
+  abilityBound: "&7Unbind this ability with &8[&b/b clear %ability% %slot%&8]"
+  slotAlreadyBound: "&7Bind it to an available slot with &8[&b/b bind %ability%&8]"
 
   # Scroll give/receive messages
   scrollGiven: "&aGiven &e%amount% &a%ability%&a scroll(s) to &e%player%&a!"
@@ -226,7 +228,7 @@ chestLoot:
 
 ### 📜 Ability-Specific Configuration
 
-Each ability has its own configuration file located in `/scrolls/<Element>/<Ability>.yml`. Here's an example for `AirBullet`:
+Each ability has its own configuration file located in `/scrolls/<Element>/<Ability>.yml`. Here's an example for `AirBlast`:
 
 ```yaml
 displayName: AirBlast
@@ -243,6 +245,13 @@ structureLootWeightBonus: 0.0
 trialLootWeightBonus: 0.0
 unlockedWeight: 0.1
 defaultWeight: 1.0
+messages:
+  consume: '&aYou read the %ability%&a scroll! &8[&e%progress%&7/&e%total%&8]'
+  unlock: '&aYou''ve learned how to use &e%ability%&a!'
+  alreadyUnlocked: '&cYou already know this ability!'
+  abilityBound: '&7Unbind this ability with &8[&b/b clear %ability% %slot%&8]'
+  slotAlreadyBound: '&7Bind it to an available slot with &8[&b/b bind %ability%&8]'
+
 ```
 
 **Parameters Explained**:

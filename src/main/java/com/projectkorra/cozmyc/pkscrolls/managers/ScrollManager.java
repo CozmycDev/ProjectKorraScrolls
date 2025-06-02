@@ -140,6 +140,28 @@ public class ScrollManager {
             scrollConfig.set("defaultWeight", 1.0);
         }
 
+        if (!scrollConfig.contains("messages")) {
+            scrollConfig.createSection("messages");
+        }
+        ConfigurationSection messagesSection = scrollConfig.getConfigurationSection("messages");
+        if (messagesSection != null) {
+            if (!messagesSection.contains("consume")) {
+                messagesSection.set("consume", plugin.getConfigManager().getMessage("scrollConsumed"));
+            }
+            if (!messagesSection.contains("unlock")) {
+                messagesSection.set("unlock", plugin.getConfigManager().getMessage("abilityUnlocked"));
+            }
+            if (!messagesSection.contains("alreadyUnlocked")) {
+                messagesSection.set("alreadyUnlocked", plugin.getConfigManager().getMessage("alreadyUnlocked"));
+            }
+            if (!messagesSection.contains("abilityBound")) {
+                messagesSection.set("abilityBound", plugin.getConfigManager().getMessage("abilityBound"));
+            }
+            if (!messagesSection.contains("slotAlreadyBound")) {
+                messagesSection.set("slotAlreadyBound", plugin.getConfigManager().getMessage("slotAlreadyBound"));
+            }
+        }
+
         try {
             scrollConfig.save(scrollFile);
             scrolls.put(abilityName, new Scroll(abilityName, scrollConfig));
