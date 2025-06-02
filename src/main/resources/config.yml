@@ -1,0 +1,184 @@
+# ProjectKorraScrolls Configuration
+
+# Debug settings
+debug:
+  enabled: false  # Enable detailed debug logging
+  logLevel: "INFO"  # Log level for debug messages (INFO, WARNING, SEVERE)
+
+# Global settings
+settings:
+  # Element-specific settings
+  elementSpecific:
+    randomIfNoElement: true  # Whether to give random scrolls if player has no element, disables scroll drops for non-benders if false
+
+  # Early Game Rewards - give new players a small boost with rewards specific to their element
+  earlyGameRewards:
+    enabled: true  # Whether to give players bonus scrolls for their first log broken, crop planted, and bed slept in.
+    amount: 3  # Number of scrolls to give for each milestone (always identical copies)
+    playerElementOnly: true  # Whether these should be scrolls from player's elements only
+    includeSubelements: false  # Whether to include subelement scrolls when filtering by element
+
+  # Natural drops from mobs
+  naturalDrops:
+    enabled: false # Whether to enable natural drops from mobs
+    hostileMobsOnly: true  # Only hostile mobs can drop scrolls. Spawner/Spawn Egg mobs never count.
+    chance: 0.1  # Base chance for a mob to drop a scroll (10%)
+    playerElementOnly: true  # Whether mobs should drop scrolls from player's elements only
+    includeSubelements: true  # Whether to include subelement scrolls when filtering by element
+
+  # Loot chest generation
+  lootGeneration:
+    enabled: false # Whether to enable loot chest generation
+    chance: 0.25  # Base chance for a chest to contain scrolls (25%)
+    maxScrollsPerChest: 2  # The max number of scrolls to generate per chest
+    playerElementOnly: true  # Only generate scrolls for player's element
+    includeSubelements: true  # Whether to include subelement scrolls when filtering by element
+
+  # Trial vault generation
+  trialLoot:
+    enabled: false # Whether to enable trial vault generation
+    chance: 1.0  # Base chance for a trial vault to contain scrolls (100%)
+    maxScrollsPerChest: 1  # The max number of scrolls to generate per unlocked vault
+    playerElementOnly: true  # Only generate scrolls for player's element
+    includeSubelements: true  # Whether to include subelement scrolls when filtering by element
+
+# Element color mappings
+elementColors:
+  AIR: "&f"
+  WATER: "&b"
+  EARTH: "&2"
+  FIRE: "&c"
+  CHI: "&e"
+  AVATAR: "&d"
+  ICE: "&b"
+  LAVA: "&6"
+  METAL: "&7"
+  SAND: "&e"
+  LIGHTNING: "&e"
+  COMBUSTION: "&c"
+  FLIGHT: "&f"
+  SPIRITUAL: "&d"
+  HEALING: "&a"
+  PLANT: "&a"
+  BLOOD: "&4"
+
+# Messages
+messages:
+  prefix: "&8[&bPKScrolls&8] &r"
+  
+  # General messages
+  noPermission: "&cYou don't have permission to use this command."
+  invalidPlayer: "&cInvalid player name."
+  invalidAbility: "&cInvalid ability name."
+  invalidAmount: "&cInvalid amount!"
+  configReloaded: "&aConfiguration reloaded!"
+  reloadComplete: "&aReload complete!"
+  
+  # Scroll consume messages
+  scrollConsumed: "&aYou read the %ability%&a scroll! &8[&e%progress%&7/&e%total%&8]"
+  abilityUnlocked: "&aYou've learned how to use &e%ability%&a! &8[&b/b bind %ability%&8]"
+  alreadyUnlocked: "&cYou already know this ability!"
+  
+  # Scroll give/receive messages
+  scrollGiven: "&aGiven &e%amount% &a%ability%&a scroll(s) to &e%player%&a!"
+  scrollReceived: "&aYou received &e%amount%&a %ability% &ascroll(s)!"
+  
+  # Progress messages
+  progressReset: "&aProgress for &e%ability%&a has been reset for &e%player%&a!"
+  progressResetAll: "&aAll progress has been reset for &e%player%&a!"
+  
+  # Early game messages
+  earlyGameReward: "&aYou found &e%amount% &a%ability% &ascrolls!"
+  
+  # Drop messages
+  naturalDrop: "&aThe &e%entity%&a dropped a(n) &e%scroll% &ascroll!"
+  trialDrop: ""
+  chestDrop: ""
+  
+  # Command messages
+  commands:
+    give:
+      usage: "&cUsage: /scroll give <player> <ability> [amount]"
+      success: "&aGave %amount% %scroll% scroll(s) to %player%"
+    progress:
+      header: "&8&m-----------------------------------------------------"
+      title: "&b&lScroll Progress"
+      elementHeader: "&8&l[&b%element%&8&l]"
+      unlockedPrefix: "&a✓"
+      lockedPrefix: "&c✗"
+      abilityFormat: "%prefix% &7%name%%progress%"
+      noProgress: "&cYou haven't made progress on any abilities yet."
+      scrollNotFound: "&cScroll not found for ability: %ability%"
+      progressFormat: " &8[&e%current%&7/&e%required%&8]"
+      itemsPerPage: 10
+      pageInfo: "&bPage %current%&7/&b%total%"
+      prevButton: " &8[&3&l<&8]"
+      nextButton: " &8[&3&l>&8]"
+      prevButtonHover: "&7Click to go to previous page"
+      nextButtonHover: "&7Click to go to next page"
+      pageUsage: "&cUsage: /scroll page <number|next|prev>"
+      invalidPage: "&cInvalid page number."
+      noPages: "&cThere are no pages to display."
+    reset:
+      usage: "&cUsage: /scroll reset <player> [ability]"
+      success: "&aReset progress for %player%"
+      abilitySuccess: "&aReset progress for %ability% for %player%"
+    resetEarlyGame:
+      usage: "&cUsage: /scroll resetearlygame <player>"
+      success: "&aReset early game progress for %player%"
+    resetProgress:
+      usage: "&cUsage: /scroll resetprogress <player>"
+      success: "&aReset all progress for %player%"
+    reload:
+      success: "PKScrolls has been reloaded"
+    help:
+      header: "&8&m-----------------------------------------------------"
+      title: "&b&lScroll Commands"
+      footer: "&8&m-----------------------------------------------------"
+      commands:
+        give: "&b/scroll give <player> <ability> [amount] &7- Give a scroll to a player"
+        progress: "&b/scroll progress [player] &7- View scroll progress"
+        reset: "&b/scroll reset <player> [ability] &7- Reset progress"
+        reload: "&b/scroll reload &7- Reload the plugin"
+        resetEarlyGame: "&b/scroll resetearlygame <player> &7- Reset early game progress"
+        resetProgress: "&b/scroll resetprogress <player> &7- Reset all progress"
+        page: "&b/scroll page <number> &7- Navigate to a specific page"
+
+# Natural drops settings
+naturalDrops:
+  showDropMessage: true
+  hostileMobs:
+    - "ZOMBIE"
+    - "SKELETON"
+    - "SPIDER"
+    - "CREEPER"
+    - "ENDERMAN"
+    - "WITCH"
+    - "SLIME"
+    - "PHANTOM"
+    - "DROWNED"
+    - "HUSK"
+    - "STRAY"
+    - "CAVE_SPIDER"
+    - "SILVERFISH"
+    - "ENDERMITE"
+    - "MAGMA_CUBE"
+    - "BLAZE"
+    - "GHAST"
+    - "SHULKER"
+    - "HOGLIN"
+    - "ZOGLIN"
+    - "PIGLIN_BRUTE"
+    - "RAVAGER"
+    - "VINDICATOR"
+    - "PILLAGER"
+    - "EVOKER"
+    - "VEX"
+
+# Trial chamber settings
+trialLoot:
+  showDropMessage: false
+
+# Chest loot settings
+chestLoot:
+  showDropMessage: false

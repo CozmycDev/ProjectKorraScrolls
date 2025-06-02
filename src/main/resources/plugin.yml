@@ -1,0 +1,20 @@
+name: ProjectKorraScrolls
+version: '${project.version}'
+main: com.projectkorra.cozmyc.pkscrolls.ProjectKorraScrolls
+api-version: '1.21.4'
+depend: [ProjectKorra]
+soft-depend: [JedCore, ProjectAddons, Hyperion, Cloudy]
+authors: [Cozmyc]
+description: A plugin that adds consumable scroll items to unlock bending abilities
+commands:
+  scrolls:
+    description: Main command for PKScrolls
+    usage: /scrolls <give|progress|reset|reload>
+    aliases: [bendingscrolls, bscrolls, pkscrolls]
+permissions:
+  pkscrolls.admin:
+    description: Gives access to all PKScrolls commands
+    default: op
+  pkscrolls.progress:
+    description: Allows players to view their scroll progress
+    default: true 
