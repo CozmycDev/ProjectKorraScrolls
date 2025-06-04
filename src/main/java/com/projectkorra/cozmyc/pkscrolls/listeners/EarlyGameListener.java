@@ -115,14 +115,12 @@ public class EarlyGameListener implements Listener {
     private void giveScrollsToPlayer(Player player, Scroll scroll) {
         int amount = plugin.getConfigManager().getConfig().getInt("settings.earlyGameRewards.amount", 3);
         ProjectKorraScrolls.getInstance().debugLog("Creating " + amount + " scrolls of " + scroll.getDisplayName() + " for " + player.getName());
-        
-        // Create and give the scrolls
+
         ItemStack scrollItem = ScrollItemFactory.createScroll(scroll);
         for (int i = 0; i < amount; i++) {
             player.getInventory().addItem(scrollItem);
         }
 
-        // Send message to player
         player.sendMessage(ColorUtils.formatMessage(plugin.getConfigManager().getMessage("earlyGameReward")
             .replace("%amount%", String.valueOf(amount))
             .replace("%ability%", scroll.getDisplayName())));
@@ -138,4 +136,4 @@ public class EarlyGameListener implements Listener {
                material == Material.COCOA_BEANS ||
                material == Material.POTATO;
     }
-} 
+}

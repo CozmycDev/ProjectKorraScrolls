@@ -6,6 +6,7 @@ import com.projectkorra.cozmyc.pkscrolls.listeners.EarlyGameListener;
 import com.projectkorra.cozmyc.pkscrolls.listeners.EntityDeathListener;
 import com.projectkorra.cozmyc.pkscrolls.listeners.LootGenerateListener;
 import com.projectkorra.cozmyc.pkscrolls.listeners.ProjectKorraReloadListener;
+import com.projectkorra.cozmyc.pkscrolls.listeners.ScrollAttributeListener;
 import com.projectkorra.cozmyc.pkscrolls.listeners.ScrollConsumeListener;
 import com.projectkorra.cozmyc.pkscrolls.listeners.ScrollUpdateListener;
 import com.projectkorra.cozmyc.pkscrolls.listeners.TrialChamberListener;
@@ -49,6 +50,7 @@ public class ProjectKorraScrolls extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new TrialChamberListener(this), this);
         getServer().getPluginManager().registerEvents(new EarlyGameListener(this), this);
         getServer().getPluginManager().registerEvents(new ScrollUpdateListener(this), this);
+        getServer().getPluginManager().registerEvents(new ScrollAttributeListener(this), this);
 
         Bukkit.getScheduler().runTaskLater(this, () -> {
             scrollManager.loadAbilities(); // Load scroll configs and add new defaults

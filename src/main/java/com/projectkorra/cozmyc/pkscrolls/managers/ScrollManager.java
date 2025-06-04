@@ -9,12 +9,14 @@ import com.projectkorra.projectkorra.ability.ComboAbility;
 import com.projectkorra.projectkorra.ability.CoreAbility;
 import com.projectkorra.projectkorra.ability.MultiAbility;
 import com.projectkorra.projectkorra.ability.PassiveAbility;
+import com.projectkorra.projectkorra.attribute.AttributeCache;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -112,6 +114,9 @@ public class ScrollManager {
         if (!scrollConfig.contains("unlockCount")) {
             scrollConfig.set("unlockCount", unlockCount);
         }
+        if (!scrollConfig.contains("maxReads")) {
+            scrollConfig.set("maxReads", 6);
+        }
         if (!scrollConfig.contains("canDrop")) {
             scrollConfig.set("canDrop", true);
         }
@@ -139,7 +144,43 @@ public class ScrollManager {
         if (!scrollConfig.contains("defaultWeight")) {
             scrollConfig.set("defaultWeight", 1.0);
         }
+        if (!scrollConfig.contains("attributes")) {
+            ConfigurationSection attributesSection = scrollConfig.createSection("attributes");
+            Map<String, AttributeCache> abilityAttributes = CoreAbility.getAttributeCache(ability);
 
+            ProjectKorraScrolls.getInstance().debugLog("Processing attributes for ability: " + ability.getName());
+            ProjectKorraScrolls.getInstance().debugLog("Found " + abilityAttributes.size() + " attributes");
+
+            for (Map.Entry<String, AttributeCache> entry : abilityAttributes.entrySet()) {
+                try {
+                    AttributeCache cache = entry.getValue();
+                    Field field = cache.getField();
+                    field.setAccessible(true);
+                    Object value = field.get(ability);
+
+                    ProjectKorraScrolls.getInstance().debugLog("Processing attribute: " + entry.getKey() + " with value: " + value);
+
+                    if (value != null && Number.class.isAssignableFrom(value.getClass())) {
+                        Class<?> valueType = value.getClass();
+                        ConfigurationSection attrSection = attributesSection.createSection(entry.getKey());
+                        attrSection.set("type", "additive");
+
+                        Object defaultValue = getDefaultValueForType(valueType);
+                        attrSection.set("value", defaultValue);
+
+                        ProjectKorraScrolls.getInstance().debugLog("Saved attribute: " + entry.getKey() +
+                                " with default value: " + defaultValue +
+                                " (type: " + valueType.getSimpleName() + ")");
+                    } else {
+                        ProjectKorraScrolls.getInstance().debugLog("Value is not a number for attribute: " + entry.getKey());
+                    }
+                } catch (Exception e) {
+                    ProjectKorraScrolls.getInstance().debugLog("Error processing attribute: " + entry.getKey());
+                    e.printStackTrace();
+                }
+            }
+            ProjectKorraScrolls.getInstance().debugLog("Final attributes section: " + attributesSection.getValues(false));
+        }
         if (!scrollConfig.contains("messages")) {
             scrollConfig.createSection("messages");
         }
@@ -169,6 +210,23 @@ public class ScrollManager {
         } catch (IOException e) {
             plugin.getLogger().severe("Failed to save scroll config for " + abilityName + ": " + e.getMessage());
         }
+    }
+
+    private Object getDefaultValueForType(Class<?> type) {
+        if (type == Integer.class || type == int.class) {
+            return 0;
+        } else if (type == Long.class || type == long.class) {
+            return 0L;
+        } else if (type == Float.class || type == float.class) {
+            return 0.0f;
+        } else if (type == Double.class || type == double.class) {
+            return 0.0;
+        } else if (type == Short.class || type == short.class) {
+            return (short) 0;
+        } else if (type == Byte.class || type == byte.class) {
+            return (byte) 0;
+        }
+        return 0;
     }
 
     private int getDefaultModelDataForElement(String elementName) {

@@ -49,26 +49,43 @@ public class ScrollConsumeListener implements Listener {
             return;
         }
 
-        if (ProjectKorraScrolls.getInstance().getPlayerDataManager().hasAbilityUnlocked(player, abilityName)) {
-            ProjectKorraScrolls.getInstance().debugLog("Player " + player.getName() + " already has ability: " + abilityName);
-            String message = scroll.getAlreadyUnlockedMessage();
-            if (message == null) {
-                message = plugin.getConfigManager().getMessage("alreadyUnlocked");
+        if (!plugin.getConfigManager().getConfig().getBoolean("settings.abilityLevelling.enabled", true)) {
+            if (ProjectKorraScrolls.getInstance().getPlayerDataManager().hasAbilityUnlocked(player, abilityName)) {
+                ProjectKorraScrolls.getInstance().debugLog("Player " + player.getName() + " already has ability: " + abilityName);
+                String message = scroll.getAlreadyUnlockedMessage();
+                if (message == null) {
+                    message = plugin.getConfigManager().getMessage("alreadyUnlocked");
+                }
+                player.sendMessage(ColorUtils.formatMessage(message, "ability", scroll.getDisplayName()));
+                return;
             }
+        }
+
+        ProjectKorraScrolls.getInstance().debugLog("Consuming scroll for " + player.getName() + ": " + abilityName);
+
+        int progress = plugin.getPlayerDataManager().getProgress(player).getOrDefault(abilityName, 0);
+        int maxReads = scroll.getMaxReads();
+        
+        if (maxReads > 0 && progress >= maxReads) {
+            String message = plugin.getConfigManager().getMessage("maxReadsReached");
             player.sendMessage(ColorUtils.formatMessage(message, "ability", scroll.getDisplayName()));
             return;
         }
 
-        ProjectKorraScrolls.getInstance().debugLog("Consuming scroll for " + player.getName() + ": " + abilityName);
         if (item.getAmount() > 1) {
             item.setAmount(item.getAmount() - 1);
         } else {
             player.getInventory().setItemInMainHand(null);
         }
 
+        boolean alreadyUnlocked = false;
+        if (ProjectKorraScrolls.getInstance().getPlayerDataManager().hasAbilityUnlocked(player, abilityName)) {
+            alreadyUnlocked = true;
+        }
+
         boolean unlocked = plugin.getPlayerDataManager().consumeScroll(player, abilityName);
 
-        if (unlocked) {
+        if (unlocked && !alreadyUnlocked) {
             ProjectKorraScrolls.getInstance().debugLog("Player " + player.getName() + " unlocked ability: " + abilityName);
             String message = scroll.getUnlockMessage();
             if (message == null) {
@@ -108,8 +125,11 @@ public class ScrollConsumeListener implements Listener {
                 ));
             }
         } else {
-            int progress = plugin.getPlayerDataManager().getProgress(player).getOrDefault(abilityName, 0);
             int required = scroll.getUnlockCount();
+            if (alreadyUnlocked) {
+                required = scroll.getMaxReads();
+            }
+
             ProjectKorraScrolls.getInstance().debugLog("Player " + player.getName() + " made progress on " + abilityName + ": " + progress + "/" + required);
 
             String message = scroll.getConsumeMessage();
@@ -119,7 +139,7 @@ public class ScrollConsumeListener implements Listener {
             player.sendMessage(ColorUtils.formatMessage(
                 message,
                 "ability", scroll.getDisplayName(),
-                "progress", String.valueOf(progress),
+                "progress", String.valueOf(progress + 1),
                 "total", String.valueOf(required)
             ));
         }

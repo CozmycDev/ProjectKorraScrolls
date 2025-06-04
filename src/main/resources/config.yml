@@ -7,9 +7,13 @@ debug:
 
 # Global settings
 settings:
+  # Ability Levelling
+  abilityLevelling:
+    enabled: false # Globally toggles the per scrolls maxReads and attribute scaling system
+
   # Element-specific settings
   elementSpecific:
-    randomIfNoElement: true  # Whether to give random scrolls if player has no element, disables scroll drops for non-benders if false
+    randomIfNoElement: true  # Whether to give random scrolls if player has no element, disables scroll generations for non-benders if false
 
   # Early Game Rewards - give new players a small boost with rewards specific to their element
   earlyGameRewards:
@@ -22,14 +26,14 @@ settings:
   naturalDrops:
     enabled: false # Whether to enable natural drops from mobs
     hostileMobsOnly: true  # Only hostile mobs can drop scrolls. Spawner/Spawn Egg mobs never count.
-    chance: 0.1  # Base chance for a mob to drop a scroll (10%)
+    chance: 0.1  # # Initial roll chance for a mob to drop a scroll (10%)
     playerElementOnly: true  # Whether mobs should drop scrolls from player's elements only
     includeSubelements: true  # Whether to include subelement scrolls when filtering by element
 
   # Loot chest generation
   lootGeneration:
     enabled: false # Whether to enable loot chest generation
-    chance: 0.25  # Base chance for a chest to contain scrolls (25%)
+    chance: 0.25  # Initial roll chance for a chest to contain scrolls (25%)
     maxScrollsPerChest: 2  # The max number of scrolls to generate per chest
     playerElementOnly: true  # Only generate scrolls for player's element
     includeSubelements: true  # Whether to include subelement scrolls when filtering by element
@@ -37,7 +41,7 @@ settings:
   # Trial vault generation
   trialLoot:
     enabled: false # Whether to enable trial vault generation
-    chance: 1.0  # Base chance for a trial vault to contain scrolls (100%)
+    chance: 1.0  # # Initial roll chance for a trial vault to contain scrolls (100%)
     maxScrollsPerChest: 1  # The max number of scrolls to generate per unlocked vault
     playerElementOnly: true  # Only generate scrolls for player's element
     includeSubelements: true  # Whether to include subelement scrolls when filtering by element
@@ -80,6 +84,7 @@ messages:
   alreadyUnlocked: "&cYou already know this ability!"
   abilityBound: "&7Unbind this ability with &8[&b/b clear %ability% %slot%&8]"
   slotAlreadyBound: "&7Bind it to an available slot with &8[&b/b bind %ability%&8]"
+  maxReadsReached: "&cYou've reached the maximum number of reads for &e%ability%&c!"
   
   # Scroll give/receive messages
   scrollGiven: "&aGiven &e%amount% &a%ability%&a scroll(s) to &e%player%&a!"
@@ -112,6 +117,7 @@ messages:
       noProgress: "&cYou haven't made progress on any abilities yet."
       scrollNotFound: "&cScroll not found for ability: %ability%"
       progressFormat: " &8[&e%current%&7/&e%required%&8]"
+      maxReadsFormat: " &8[&e%current%&7/&e%max%&8]"
       itemsPerPage: 10
       pageInfo: "&bPage %current%&7/&b%total%"
       prevButton: " &8[&3&l<&8]"

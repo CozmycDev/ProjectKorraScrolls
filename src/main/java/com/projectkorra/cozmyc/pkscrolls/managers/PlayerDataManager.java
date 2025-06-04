@@ -3,10 +3,13 @@ package com.projectkorra.cozmyc.pkscrolls.managers;
 import com.projectkorra.cozmyc.pkscrolls.ProjectKorraScrolls;
 import com.projectkorra.cozmyc.pkscrolls.models.Scroll;
 import org.bukkit.NamespacedKey;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -92,8 +95,38 @@ public class PlayerDataManager {
         return progress;
     }
 
-    private void setProgress(Player player, String abilityName, int progress) {
+    public void setProgress(Player player, String abilityName, int progress) {
         PersistentDataContainer pdc = player.getPersistentDataContainer();
         pdc.set(plugin.getNamespacedKey("progress_" + abilityName), PersistentDataType.INTEGER, progress);
+    }
+
+    // legacy updater from the early versions
+    public static void updateProgress(Player player) {
+        PersistentDataContainer pdc = player.getPersistentDataContainer();
+        NamespacedKey migratedKey = ProjectKorraScrolls.getInstance().getNamespacedKey("data_migrated");
+
+        if (pdc.has(migratedKey, PersistentDataType.BYTE)) {
+            return;
+        }
+
+        File file = new File(ProjectKorraScrolls.getInstance().getDataFolder(), "playerdata.yml");
+        if (!file.exists()) return;
+
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
+        String uuid = player.getUniqueId().toString();
+
+        if (!config.contains("players." + uuid)) return;
+
+        ConfigurationSection section = config.getConfigurationSection("players." + uuid);
+        if (section == null) return;
+
+        for (String abilityName : section.getKeys(false)) {
+            int progress = section.getInt(abilityName);
+            for (int i = 0; i < progress; i++) {
+                ProjectKorraScrolls.getInstance().getPlayerDataManager().consumeScroll(player, abilityName);
+            }
+        }
+
+        pdc.set(migratedKey, PersistentDataType.BYTE, (byte) 1);
     }
 }

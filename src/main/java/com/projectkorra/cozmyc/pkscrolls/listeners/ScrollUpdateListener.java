@@ -47,4 +47,4 @@ public class ScrollUpdateListener implements Listener {
         ProjectKorraScrolls.getInstance().debugLog("Updating scroll item for ability: " + abilityName);
         event.setCurrentItem(updatedScroll);
     }
-} 
+}

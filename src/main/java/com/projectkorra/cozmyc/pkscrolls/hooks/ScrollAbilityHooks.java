@@ -27,11 +27,14 @@ public class ScrollAbilityHooks implements CanBindHook, CanBendHook {
 
     @Override
     public Optional<Boolean> canBind(BendingPlayer bPlayer, CoreAbility ability) {
-        if (ability == null) { // possible
+        if (ability == null) {
             return Optional.empty();
         }
-        if (bPlayer == null) { // not sure if possible
+        if (bPlayer == null) {
             return Optional.empty();
+        }
+        if (ability.isHiddenAbility() || !ability.isEnabled()) {
+            return Optional.of(false);
         }
 
         Player player = bPlayer.getPlayer();
@@ -56,11 +59,17 @@ public class ScrollAbilityHooks implements CanBindHook, CanBendHook {
 
     @Override
     public Optional<Boolean> canBend(BendingPlayer bPlayer, CoreAbility ability, boolean ignoreCooldown, boolean ignoreBinds) {
-        if (ability == null) { // possible
+        if (ability == null) {
             return Optional.empty();
         }
-        if (bPlayer == null) { // not sure if possible
+        if (bPlayer == null) {
             return Optional.empty();
+        }
+        if (!ability.isEnabled()) {
+            return Optional.of(false);
+        }
+        if (ability.isHiddenAbility()) {
+            return Optional.of(true);
         }
 
         Player player = bPlayer.getPlayer();
@@ -69,7 +78,7 @@ public class ScrollAbilityHooks implements CanBindHook, CanBendHook {
         
         // If no scroll exists for this ability, allow bending
         if (scroll == null) {
-            return Optional.empty();
+            return Optional.of(true);
         }
         
         PersistentDataContainer pdc = player.getPersistentDataContainer();

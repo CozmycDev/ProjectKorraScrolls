@@ -1,6 +1,7 @@
 package com.projectkorra.cozmyc.pkscrolls.commands;
 
 import com.projectkorra.cozmyc.pkscrolls.ProjectKorraScrolls;
+import com.projectkorra.cozmyc.pkscrolls.managers.PlayerDataManager;
 import com.projectkorra.cozmyc.pkscrolls.models.Scroll;
 import com.projectkorra.cozmyc.pkscrolls.utils.ColorUtils;
 import com.projectkorra.cozmyc.pkscrolls.utils.ScrollItemFactory;
@@ -175,14 +176,35 @@ public class ScrollCommand implements CommandExecutor, TabCompleter {
                     int count = entry.getValue();
                     Scroll scroll = plugin.getScrollManager().getScroll(abilityName);
                     if (scroll != null) {
-                        String prefix = count >= scroll.getUnlockCount() ? 
-                            plugin.getConfigManager().getMessage("commands.progress.unlockedPrefix") : 
-                            plugin.getConfigManager().getMessage("commands.progress.lockedPrefix");
-                        String progressText = count < scroll.getUnlockCount() ? 
-                            plugin.getConfigManager().getMessage("commands.progress.progressFormat")
+                        String prefix;
+                        String progressText = "";
+                        
+                        if (count >= scroll.getUnlockCount() && plugin.getConfigManager().getConfig().getBoolean("settings.abilityLevelling.enabled", false)) {
+                            if (scroll.getMaxReads() > 0 && count >= scroll.getMaxReads()) {
+                                prefix = "&6★"; // Star for maxed abilities
+                                // Don't show progress for maxed abilities
+                            } else {
+                                prefix = plugin.getConfigManager().getMessage("commands.progress.unlockedPrefix");
+                                // Show max reads progress if applicable
+                                if (scroll.getMaxReads() > 0) {
+                                    progressText = plugin.getConfigManager().getMessage("commands.progress.maxReadsFormat")
+                                            .replace("%current%", String.valueOf(count))
+                                            .replace("%max%", String.valueOf(scroll.getMaxReads()));
+                                }
+                            }
+                        } else if (count >= scroll.getUnlockCount()) {
+                            //
+                            prefix = plugin.getConfigManager().getMessage("commands.progress.unlockedPrefix");
+                            progressText = plugin.getConfigManager().getMessage("commands.progress.progressFormat")
+                                    .replace("%current%", String.valueOf(count))
+                                    .replace("%required%", String.valueOf(scroll.getUnlockCount()));
+                        } else {
+                            prefix = plugin.getConfigManager().getMessage("commands.progress.lockedPrefix");
+                            progressText = plugin.getConfigManager().getMessage("commands.progress.progressFormat")
                                 .replace("%current%", String.valueOf(count))
-                                .replace("%required%", String.valueOf(scroll.getUnlockCount())) : 
-                            "";
+                                .replace("%required%", String.valueOf(scroll.getUnlockCount()));
+                        }
+                        
                         displayLines.add(plugin.getConfigManager().getMessage("commands.progress.abilityFormat")
                             .replace("%prefix%", prefix)
                             .replace("%name%", scroll.getDisplayName())
@@ -203,14 +225,29 @@ public class ScrollCommand implements CommandExecutor, TabCompleter {
                     int count = entry.getValue();
                     Scroll scroll = plugin.getScrollManager().getScroll(abilityName);
                     if (scroll != null) {
-                        String prefix = count >= scroll.getUnlockCount() ? 
-                            plugin.getConfigManager().getMessage("commands.progress.unlockedPrefix") : 
-                            plugin.getConfigManager().getMessage("commands.progress.lockedPrefix");
-                        String progressText = count < scroll.getUnlockCount() ? 
-                            plugin.getConfigManager().getMessage("commands.progress.progressFormat")
+                        String prefix;
+                        String progressText = "";
+                        
+                        if (count >= scroll.getUnlockCount()) {
+                            if (scroll.getMaxReads() > 0 && count >= scroll.getMaxReads()) {
+                                prefix = "&6★"; // Star for maxed abilities
+                                // Don't show progress for maxed abilities
+                            } else {
+                                prefix = plugin.getConfigManager().getMessage("commands.progress.unlockedPrefix");
+                                // Show max reads progress if applicable
+                                if (scroll.getMaxReads() > 0) {
+                                    progressText = plugin.getConfigManager().getMessage("commands.progress.maxReadsFormat")
+                                        .replace("%current%", String.valueOf(count))
+                                        .replace("%max%", String.valueOf(scroll.getMaxReads()));
+                                }
+                            }
+                        } else {
+                            prefix = plugin.getConfigManager().getMessage("commands.progress.lockedPrefix");
+                            progressText = plugin.getConfigManager().getMessage("commands.progress.progressFormat")
                                 .replace("%current%", String.valueOf(count))
-                                .replace("%required%", String.valueOf(scroll.getUnlockCount())) : 
-                            "";
+                                .replace("%required%", String.valueOf(scroll.getUnlockCount()));
+                        }
+                        
                         displayLines.add(plugin.getConfigManager().getMessage("commands.progress.abilityFormat")
                             .replace("%prefix%", prefix)
                             .replace("%name%", scroll.getDisplayName())
@@ -337,6 +374,10 @@ public class ScrollCommand implements CommandExecutor, TabCompleter {
 
         plugin.getConfigManager().loadConfig();
         plugin.getScrollManager().loadAbilities();
+
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            PlayerDataManager.updateProgress(player); // legacy updater
+        }
         
         sender.sendMessage(ColorUtils.formatMessage(plugin.getConfigManager().getMessage("commands.reload.success")));
         return true;
