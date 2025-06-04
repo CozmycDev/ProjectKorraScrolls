@@ -35,7 +35,7 @@
 
 ### 🔧 Global Settings
 
-Configure overarching behaviors for scroll distribution and player progression.
+Configure overarching behaviors for scroll distribution and player progression. By default, nothing is enabled and no scrolls are generated until you enable something.
 
 ```yaml
 # ProjectKorraScrolls Configuration
@@ -47,9 +47,13 @@ debug:
 
 # Global settings
 settings:
+  # Ability Levelling
+  abilityLevelling:
+    enabled: false # Globally toggles the per scrolls maxReads and attribute scaling system
+
   # Element-specific settings
   elementSpecific:
-    randomIfNoElement: true  # Whether to give random scrolls if player has no element, disables scroll drops for non-benders if false
+    randomIfNoElement: true  # Whether to give random scrolls if player has no element, disables scroll generations for non-benders if false
 
   # Early Game Rewards - give new players a small boost with rewards specific to their element
   earlyGameRewards:
@@ -62,14 +66,14 @@ settings:
   naturalDrops:
     enabled: false # Whether to enable natural drops from mobs
     hostileMobsOnly: true  # Only hostile mobs can drop scrolls. Spawner/Spawn Egg mobs never count.
-    chance: 0.1  # Base chance for a mob to drop a scroll (10%)
+    chance: 0.1  # # Initial roll chance for a mob to drop a scroll (10%)
     playerElementOnly: true  # Whether mobs should drop scrolls from player's elements only
     includeSubelements: true  # Whether to include subelement scrolls when filtering by element
 
   # Loot chest generation
   lootGeneration:
     enabled: false # Whether to enable loot chest generation
-    chance: 0.25  # Base chance for a chest to contain scrolls (25%)
+    chance: 0.25  # Initial roll chance for a chest to contain scrolls (25%)
     maxScrollsPerChest: 2  # The max number of scrolls to generate per chest
     playerElementOnly: true  # Only generate scrolls for player's element
     includeSubelements: true  # Whether to include subelement scrolls when filtering by element
@@ -77,7 +81,7 @@ settings:
   # Trial vault generation
   trialLoot:
     enabled: false # Whether to enable trial vault generation
-    chance: 1.0  # Base chance for a trial vault to contain scrolls (100%)
+    chance: 1.0  # # Initial roll chance for a trial vault to contain scrolls (100%)
     maxScrollsPerChest: 1  # The max number of scrolls to generate per unlocked vault
     playerElementOnly: true  # Only generate scrolls for player's element
     includeSubelements: true  # Whether to include subelement scrolls when filtering by element
@@ -120,6 +124,7 @@ messages:
   alreadyUnlocked: "&cYou already know this ability!"
   abilityBound: "&7Unbind this ability with &8[&b/b clear %ability% %slot%&8]"
   slotAlreadyBound: "&7Bind it to an available slot with &8[&b/b bind %ability%&8]"
+  maxReadsReached: "&cYou've reached the maximum number of reads for &e%ability%&c!"
 
   # Scroll give/receive messages
   scrollGiven: "&aGiven &e%amount% &a%ability%&a scroll(s) to &e%player%&a!"
@@ -152,6 +157,7 @@ messages:
       noProgress: "&cYou haven't made progress on any abilities yet."
       scrollNotFound: "&cScroll not found for ability: %ability%"
       progressFormat: " &8[&e%current%&7/&e%required%&8]"
+      maxReadsFormat: " &8[&e%current%&7/&e%max%&8]"
       itemsPerPage: 10
       pageInfo: "&bPage %current%&7/&b%total%"
       prevButton: " &8[&3&l<&8]"
@@ -236,6 +242,7 @@ description:
   - '&7This scroll contains knowledge related to the ability &7AirBlast'
   - '&7Learn more about it using &8[&b/b help AirBlast&8]'
 unlockCount: 2
+maxReads: 6
 canDrop: true
 canLoot: true
 canTrialLoot: true
@@ -245,25 +252,77 @@ structureLootWeightBonus: 0.0
 trialLootWeightBonus: 0.0
 unlockedWeight: 0.1
 defaultWeight: 1.0
+attributes:
+  Speed:
+    type: additive
+    value: 0.0
+  Radius:
+    type: additive
+    value: 0.0
+  SelfPush:
+    type: additive
+    value: 0.0
+  Cooldown:
+    type: additive
+    value: 0
+  Knockback:
+    type: additive
+    value: 0.0
+  Range:
+    type: additive
+    value: 0.0
+  Damage:
+    type: additive
+    value: 0.0
 messages:
   consume: '&aYou read the %ability%&a scroll! &8[&e%progress%&7/&e%total%&8]'
   unlock: '&aYou''ve learned how to use &e%ability%&a!'
   alreadyUnlocked: '&cYou already know this ability!'
   abilityBound: '&7Unbind this ability with &8[&b/b clear %ability% %slot%&8]'
   slotAlreadyBound: '&7Bind it to an available slot with &8[&b/b bind %ability%&8]'
-
 ```
 
 **Parameters Explained**:
 
-* `unlockCount`: Number of scrolls required to unlock the ability.
-* `canDrop`: Determines if the scroll can drop from mobs.
-* `canLoot`: Determines if the scroll can be found in chests.
-* `canTrialLoot`: Determines if the scroll can be obtained from trial vaults.
-* `modelData`: Custom model data for resource pack integration.
-* `mobDropWeightBonus`, `structureLootWeightBonus`, `trialLootWeightBonus`: Increase the likelihood of the scroll appearing in respective sources.
-* `unlockedWeight`: Weight for scroll selection after the ability is unlocked.
-* `defaultWeight`: Base weight for scroll selection.
+* `displayName`: Custom display name for the scroll (defaults to ability name)
+* `description`: List of description lines for the scroll
+* `unlockCount`: Number of scrolls required to unlock the ability
+* `maxReads`: Maximum number of times a scroll can be read after unlocking (0 = unlimited)
+* `canDrop`: Determines if the scroll can drop from mobs
+* `canLoot`: Determines if the scroll can be found in chests
+* `canTrialLoot`: Determines if the scroll can be obtained from trial vaults
+* `modelData`: Custom model data for resource pack integration
+* `mobDropWeightBonus`: Increases the likelihood of the scroll dropping from mobs
+* `structureLootWeightBonus`: Increases the likelihood of the scroll appearing in structure chests
+* `trialLootWeightBonus`: Increases the likelihood of the scroll appearing in trial vaults
+* `unlockedWeight`: Weight for scroll selection after the ability is unlocked
+* `defaultWeight`: Base weight for scroll selection
+
+**Attribute Scaling Types**:
+
+Each attribute can have one of the following scaling types:
+
+* `additive`: Fixed increment per level (e.g., +2.0 per level)
+  * Formula: `baseValue + (configValue * postUnlockProgress)`
+  * Example: If `value: 2.0`, each level adds 2.0 to the base value
+
+* `multiplicative`: Percentage increase per level (e.g., +10% per level)
+  * Formula: `baseValue * (1 + (configValue * postUnlockProgress))`
+  * Example: If `value: 0.1`, each level adds 10% to the base value
+
+* `exponential`: Compound increase per level (e.g., 10% compound per level)
+  * Formula: `baseValue * (1 + configValue)^postUnlockProgress`
+  * Example: If `value: 0.1`, each level multiplies the previous value by 1.1
+
+* `NONE`: No scaling applied, same as additive: 0
+
+**Messages**:
+
+Custom messages for various scroll interactions. Available placeholders:
+* `%ability%`: The ability name
+* `%progress%`: Current progress towards unlocking
+* `%total%`: Total scrolls needed to unlock
+* `%slot%`: The slot number for binding messages
 
 ---
 
@@ -302,9 +361,6 @@ The ProjectKorraScrolls plugin is continuously evolving to enhance the bending e
 ### 🔄 Enhanced Compatibility with Core
 
 * **Support for All Abilities**: We are still working to ensure full compatibility with all Core abilities. Very few abilities, like AirAgility, aren't compatible, yet.
-### 📈 Scroll-Based Ability Enhancements
-
-* **Attribute Upgrades via Scrolls**: In the future, players will be able to read additional scrolls for abilities they've already unlocked to permanently enhance specific attributes of those abilities. For example, reading more "FireBlast" scrolls could increase its damage or reduce its cooldown.
 
 ### 🛠️ Overhaul of the Events System
 
