@@ -349,8 +349,9 @@ Custom messages for various scroll interactions. Available placeholders:
 
 ## 🤝 Compatibility
 
-* **ProjectKorra**: 1.12.0
+* **ProjectKorra**: 1.12.0+
 * **Minecraft Versions**: 1.21.4+
+* **ProjectKorra Addons**: JedCore, ProjectAddons, Hyperion, and most other up to date addons and side plugins. Including custom elements!
 
 ---
 
