@@ -2,14 +2,7 @@ package com.projectkorra.cozmyc.pkscrolls;
 
 import com.projectkorra.cozmyc.pkscrolls.commands.ScrollCommand;
 import com.projectkorra.cozmyc.pkscrolls.hooks.ScrollAbilityHooks;
-import com.projectkorra.cozmyc.pkscrolls.listeners.EarlyGameListener;
-import com.projectkorra.cozmyc.pkscrolls.listeners.EntityDeathListener;
-import com.projectkorra.cozmyc.pkscrolls.listeners.LootGenerateListener;
-import com.projectkorra.cozmyc.pkscrolls.listeners.ProjectKorraReloadListener;
-import com.projectkorra.cozmyc.pkscrolls.listeners.ScrollAttributeListener;
-import com.projectkorra.cozmyc.pkscrolls.listeners.ScrollConsumeListener;
-import com.projectkorra.cozmyc.pkscrolls.listeners.ScrollUpdateListener;
-import com.projectkorra.cozmyc.pkscrolls.listeners.TrialChamberListener;
+import com.projectkorra.cozmyc.pkscrolls.listeners.*;
 import com.projectkorra.cozmyc.pkscrolls.managers.ConfigManager;
 import com.projectkorra.cozmyc.pkscrolls.managers.PlayerDataManager;
 import com.projectkorra.cozmyc.pkscrolls.managers.ScrollManager;
@@ -51,6 +44,7 @@ public class ProjectKorraScrolls extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new EarlyGameListener(this), this);
         getServer().getPluginManager().registerEvents(new ScrollUpdateListener(this), this);
         getServer().getPluginManager().registerEvents(new ScrollAttributeListener(this), this);
+        getServer().getPluginManager().registerEvents(new ScrollDebugListener(this), this);
 
         Bukkit.getScheduler().runTaskLater(this, () -> {
             scrollManager.loadAbilities(); // Load scroll configs and add new defaults
@@ -65,9 +59,13 @@ public class ProjectKorraScrolls extends JavaPlugin {
     }
 
     public void debugLog(String message) {
-        if (instance.getConfigManager().getConfig().getBoolean("debug.enabled", false)) {
+        if (isDebugging()) {
             instance.getLogger().info("[DEBUG] " + message);
         }
+    }
+
+    public boolean isDebugging() {
+        return getConfigManager().getConfig().getBoolean("debug.enabled", false);
     }
 
     public static ProjectKorraScrolls getInstance() {

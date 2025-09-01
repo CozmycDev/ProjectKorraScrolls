@@ -6,16 +6,15 @@ import com.projectkorra.projectkorra.ability.CoreAbility;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Scroll {
 
     private final String abilityName;
-    private final String displayName;
+    private String displayName;
     private final int modelData;
-    private final int unlockCount;
-    private final int maxReads;
+    private int unlockCount;
+    private int maxReads;
     private final double defaultWeight;
     private final double mobDropWeightBonus;
     private final double structureLootWeightBonus;
@@ -24,6 +23,7 @@ public class Scroll {
     private final boolean canDrop;
     private final boolean canLoot;
     private final boolean canTrialLoot;
+    private boolean permissionCanBypassBindHooks;
     private final String[] description;
     private final CoreAbility coreAbility;
     private final String consumeMessage;
@@ -39,7 +39,7 @@ public class Scroll {
         this.displayName = config.getString("displayName", abilityName);
         this.modelData = config.getInt("modelData", 1);
         this.unlockCount = config.getInt("unlockCount", 1);
-        this.maxReads = config.getInt("maxReads", 0);
+        this.maxReads = config.getInt("maxReads", 1);
         this.defaultWeight = config.getDouble("defaultWeight", 1.0);
         this.mobDropWeightBonus = config.getDouble("mobDropWeightBonus", 0.0);
         this.structureLootWeightBonus = config.getDouble("structureLootWeightBonus", 0.0);
@@ -48,6 +48,7 @@ public class Scroll {
         this.canDrop = config.getBoolean("canDrop", true);
         this.canLoot = config.getBoolean("canLoot", true);
         this.canTrialLoot = config.getBoolean("canTrialLoot", true);
+        this.permissionCanBypassBindHooks = config.getBoolean("permissionCanBypassBindHooks", false);
         this.description = config.getStringList("description").toArray(new String[0]);
         this.coreAbility = CoreAbility.getAbility(abilityName);
 
@@ -67,6 +68,22 @@ public class Scroll {
             this.abilityBoundMessage = null;
             this.slotAlreadyBoundMessage = null;
         }
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public void setUnlockCount(int unlockCount) {
+        this.unlockCount = unlockCount;
+    }
+
+    public void setMaxReads(int maxReads) {
+        this.maxReads = maxReads;
+    }
+
+    public void setPermissionCanBypassBindHooks(boolean permissionCanBypassBindHooks) {
+        this.permissionCanBypassBindHooks = permissionCanBypassBindHooks;
     }
 
     public String getAbilityName() {
@@ -123,6 +140,10 @@ public class Scroll {
 
     public boolean canTrialLoot() {
         return canTrialLoot;
+    }
+
+    public boolean permissionCanBypassBindHooks() {
+        return this.permissionCanBypassBindHooks;
     }
 
     public String[] getDescription() {

@@ -63,85 +63,117 @@ public class ScrollConsumeListener implements Listener {
 
         ProjectKorraScrolls.getInstance().debugLog("Consuming scroll for " + player.getName() + ": " + abilityName);
 
-        int progress = plugin.getPlayerDataManager().getProgress(player).getOrDefault(abilityName, 0);
-        int maxReads = scroll.getMaxReads();
-        
-        if (maxReads > 0 && progress >= maxReads) {
-            String message = plugin.getConfigManager().getMessage("maxReadsReached");
-            player.sendMessage(ColorUtils.formatMessage(message, "ability", scroll.getDisplayName()));
-            return;
-        }
-
-        if (item.getAmount() > 1) {
-            item.setAmount(item.getAmount() - 1);
+        BendingPlayer bPlayer = BendingPlayer.getBendingPlayer(player);
+        if (plugin.getConfigManager().getConfig().getBoolean("settings.elementSpecific.requireElementToRead", true) && !bPlayer.hasElement(scroll.getElement())) {
+            player.sendMessage(ColorUtils.formatMessage("&cYou need the &e%element%&c element to understand this scroll.", "element", scroll.getElement().toString().toLowerCase()));
         } else {
-            player.getInventory().setItemInMainHand(null);
-        }
+            int progress = plugin.getPlayerDataManager().getProgress(player).getOrDefault(abilityName, 0);
+            int maxReads = scroll.getMaxReads();
 
-        boolean alreadyUnlocked = false;
-        if (ProjectKorraScrolls.getInstance().getPlayerDataManager().hasAbilityUnlocked(player, abilityName)) {
-            alreadyUnlocked = true;
-        }
-
-        boolean unlocked = plugin.getPlayerDataManager().consumeScroll(player, abilityName);
-
-        if (unlocked && !alreadyUnlocked) {
-            ProjectKorraScrolls.getInstance().debugLog("Player " + player.getName() + " unlocked ability: " + abilityName);
-            String message = scroll.getUnlockMessage();
-            if (message == null) {
-                message = plugin.getConfigManager().getMessage("abilityUnlocked");
+            if (maxReads > 0 && progress >= maxReads) {
+                String message = plugin.getConfigManager().getMessage("maxReadsReached");
+                player.sendMessage(ColorUtils.formatMessage(message, "ability", scroll.getDisplayName()));
+                return;
             }
-            player.sendMessage(ColorUtils.formatMessage(message, "ability", scroll.getDisplayName()));
-            
-            CoreAbility ability = CoreAbility.getAbility(scroll.getAbilityName());
 
-            player.sendMessage(ColorUtils.addColor(plugin.getConfigManager().getMessage("commands.progress.header")));
-            player.sendMessage(ability.getElement().getColor() + ability.getDescription());
-            player.sendMessage(ColorUtils.addColor(plugin.getConfigManager().getMessage("commands.progress.header")));
-            player.sendMessage(ColorUtils.addColor("&e" + ability.getInstructions()));
-            player.sendMessage(ColorUtils.addColor(plugin.getConfigManager().getMessage("commands.progress.header")));
-            
-            BendingPlayer bPlayer = BendingPlayer.getBendingPlayer(player);
-            int currentSlot = bPlayer.getCurrentSlot() + 1;
-            if (bPlayer.getAbilities().get(currentSlot) == null) {
-                bPlayer.bindAbility(scroll.getAbilityName(), currentSlot);
-                String boundMessage = scroll.getAbilityBoundMessage();
-                if (boundMessage == null) {
-                    boundMessage = plugin.getConfigManager().getMessage("abilityBound");
-                }
-                player.sendMessage(ColorUtils.formatMessage(
-                    boundMessage,
-                    "ability", scroll.getDisplayName(),
-                    "slot", String.valueOf(currentSlot)
-                ));
+            if (item.getAmount() > 1) {
+                item.setAmount(item.getAmount() - 1);
             } else {
-                String slotMessage = scroll.getSlotAlreadyBoundMessage();
-                if (slotMessage == null) {
-                    slotMessage = plugin.getConfigManager().getMessage("slotAlreadyBound");
+                player.getInventory().setItemInMainHand(null);
+            }
+
+            boolean alreadyUnlocked = false;
+            if (ProjectKorraScrolls.getInstance().getPlayerDataManager().hasAbilityUnlocked(player, abilityName)) {
+                alreadyUnlocked = true;
+            }
+
+//            // Handle permissionCanBypassBindHooks
+//            if (scroll.permissionCanBypassBindHooks() && player.hasPermission("bending.ability." + abilityName.toLowerCase())) {
+//                // Ensure minimum progress is at least unlockCount + 1
+//                if (progress < scroll.getUnlockCount() + 1) {
+//                    plugin.getPlayerDataManager().setProgress(player, abilityName, scroll.getUnlockCount() + 1);
+//                }
+//                // Ensure ability is marked as unlocked
+//                if (!alreadyUnlocked) {
+//                    plugin.getPlayerDataManager().unlockAbility(player, abilityName);
+//                }
+//                // Send consume message
+//                String message = scroll.getConsumeMessage();
+//                if (message == null) {
+//                    message = plugin.getConfigManager().getMessage("scrollConsumed");
+//                }
+//                player.sendMessage(ColorUtils.formatMessage(
+//                    message,
+//                    "ability", scroll.getDisplayName(),
+//                    "progress", String.valueOf(scroll.getUnlockCount() + 1),
+//                    "total", String.valueOf(scroll.getUnlockCount())
+//                ));
+//                return;
+//            }
+
+            boolean unlocked = plugin.getPlayerDataManager().consumeScroll(player, abilityName);
+
+            if (unlocked && !alreadyUnlocked) {
+                ProjectKorraScrolls.getInstance().debugLog("Player " + player.getName() + " unlocked ability: " + abilityName);
+                String message = scroll.getUnlockMessage();
+                if (message == null) {
+                    message = plugin.getConfigManager().getMessage("abilityUnlocked");
+                }
+                player.sendMessage(ColorUtils.formatMessage(message, "ability", scroll.getDisplayName()));
+
+                CoreAbility ability = CoreAbility.getAbility(scroll.getAbilityName());
+
+                player.sendMessage(ColorUtils.addColor(plugin.getConfigManager().getMessage("commands.progress.header")));
+                player.sendMessage(ability.getElement().getColor() + ability.getDescription());
+                player.sendMessage(ColorUtils.addColor(plugin.getConfigManager().getMessage("commands.progress.header")));
+                player.sendMessage(ColorUtils.addColor("&e" + ability.getInstructions()));
+                player.sendMessage(ColorUtils.addColor(plugin.getConfigManager().getMessage("commands.progress.header")));
+
+                int currentSlot = bPlayer.getCurrentSlot() + 1;
+
+                if (bPlayer.getAbilities().get(currentSlot) == null) {
+                    if (bPlayer.hasElement(scroll.getElement())) {
+                        bPlayer.bindAbility(scroll.getAbilityName(), currentSlot);
+                    }
+
+                    String boundMessage = scroll.getAbilityBoundMessage();
+                    if (boundMessage == null) {
+                        boundMessage = plugin.getConfigManager().getMessage("abilityBound");
+                    }
+                    player.sendMessage(ColorUtils.formatMessage(
+                            boundMessage,
+                            "ability", scroll.getDisplayName(),
+                            "slot", String.valueOf(currentSlot)
+                    ));
+                } else {
+                    String slotMessage = scroll.getSlotAlreadyBoundMessage();
+                    if (slotMessage == null) {
+                        slotMessage = plugin.getConfigManager().getMessage("slotAlreadyBound");
+                    }
+                    player.sendMessage(ColorUtils.formatMessage(
+                            slotMessage,
+                            "ability", scroll.getDisplayName()
+                    ));
+                }
+            } else {
+                int required = scroll.getUnlockCount();
+                if (alreadyUnlocked) {
+                    required = scroll.getMaxReads();
+                }
+
+                ProjectKorraScrolls.getInstance().debugLog("Player " + player.getName() + " made progress on " + abilityName + ": " + progress + "/" + required);
+
+                String message = scroll.getConsumeMessage();
+                if (message == null) {
+                    message = plugin.getConfigManager().getMessage("scrollConsumed");
                 }
                 player.sendMessage(ColorUtils.formatMessage(
-                    slotMessage,
-                    "ability", scroll.getDisplayName()
+                            message,
+                            "ability", scroll.getDisplayName(),
+                            "progress", String.valueOf(progress + 1),
+                            "total", String.valueOf(required)
                 ));
             }
-        } else {
-            int required = scroll.getUnlockCount();
-            if (alreadyUnlocked) {
-                required = scroll.getMaxReads();
-            }
-
-            ProjectKorraScrolls.getInstance().debugLog("Player " + player.getName() + " made progress on " + abilityName + ": " + progress + "/" + required);
-
-            String message = scroll.getConsumeMessage();
-            if (message == null) {
-                message = plugin.getConfigManager().getMessage("scrollConsumed");
-            }
-            player.sendMessage(ColorUtils.formatMessage(
-                message,
-                "ability", scroll.getDisplayName(),
-                "progress", String.valueOf(progress + 1),
-                "total", String.valueOf(required)
-            ));
         }
     }
 }

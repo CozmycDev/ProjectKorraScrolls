@@ -5,6 +5,7 @@ import com.projectkorra.cozmyc.pkscrolls.managers.PlayerDataManager;
 import com.projectkorra.cozmyc.pkscrolls.models.Scroll;
 import com.projectkorra.cozmyc.pkscrolls.utils.ColorUtils;
 import com.projectkorra.cozmyc.pkscrolls.utils.ScrollItemFactory;
+import com.projectkorra.projectkorra.BendingPlayer;
 import com.projectkorra.projectkorra.Element;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -18,13 +19,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.*;
 
 public class ScrollCommand implements CommandExecutor, TabCompleter {
 
@@ -133,11 +128,11 @@ public class ScrollCommand implements CommandExecutor, TabCompleter {
         ProjectKorraScrolls.getInstance().debugLog("Found " + progress.size() + " abilities in progress map");
         
         // Filter out any abilities with 0 progress
-        progress = progress.entrySet().stream()
-            .filter(entry -> entry.getValue() > 0)
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        ProjectKorraScrolls.getInstance().debugLog("After filtering 0 progress: " + progress.size() + " abilities");
-        
+//        progress = progress.entrySet().stream()
+//            .filter(entry -> entry.getValue() > 0)
+//            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+//        ProjectKorraScrolls.getInstance().debugLog("After filtering 0 progress: " + progress.size() + " abilities");
+//
         // Group abilities by element
         Map<Element, List<Map.Entry<String, Integer>>> elementGroups = new LinkedHashMap<>();
         Map<Element, List<Map.Entry<String, Integer>>> subelementGroups = new LinkedHashMap<>();
@@ -165,10 +160,18 @@ public class ScrollCommand implements CommandExecutor, TabCompleter {
         
         // Combine all entries for pagination
         List<String> displayLines = new ArrayList<>();
+
+        BendingPlayer bPlayer = BendingPlayer.getBendingPlayer(player);
         
         // Add element headers and their abilities
         for (Map.Entry<Element, List<Map.Entry<String, Integer>>> group : elementGroups.entrySet()) {
             if (!group.getValue().isEmpty()) {
+                if (!bPlayer.hasElement(Element.getElement(group.getKey().getName()))) {
+                    continue;
+                }
+                if (Element.getElement(group.getKey().getName()).equals(Element.AVATAR) && bPlayer.getElements().size() <= 1) {
+                    continue; // todo bandaid, some servers may want to display avatar abilties regardless?
+                }
                 displayLines.add(plugin.getConfigManager().getMessage("commands.progress.elementHeader")
                     .replace("%element%", group.getKey().getName()));
                 for (Map.Entry<String, Integer> entry : group.getValue()) {
@@ -178,11 +181,38 @@ public class ScrollCommand implements CommandExecutor, TabCompleter {
                     if (scroll != null) {
                         String prefix;
                         String progressText = "";
-                        
+
+                        if (scroll.permissionCanBypassBindHooks()) {
+                            prefix = "&b⚡";
+                            if (scroll.getMaxReads() > 0 && count >= scroll.getMaxReads()) {
+                                prefix = "&6★";
+                            }
+                            System.out.println(bPlayer.hasElement(scroll.getElement()));
+                            if (count == 0 && !bPlayer.hasElement(scroll.getElement())) {
+                                continue; // Dont display other elements for hidden abilities unless count > 0
+                            }
+                            if (count == 0 && prefix.equalsIgnoreCase("&b⚡")) {
+                                continue; // todo, lets try not showing bypass abilities without progress
+                            }
+                            if (count == 0 && (!scroll.canDrop() && !scroll.canLoot() && !scroll.canTrialLoot())) {
+                                continue; // todo, also skip scrolls that are unobtainable normally with zero progress
+                            }
+                            progressText = plugin.getConfigManager().getMessage("commands.progress.maxReadsFormat")
+                                    .replace("%current%", String.valueOf(count))
+                                    .replace("%max%", String.valueOf(scroll.getMaxReads()));
+                            displayLines.add(plugin.getConfigManager().getMessage("commands.progress.abilityFormat")
+                                    .replace("%prefix%", prefix)
+                                    .replace("%ability%", scroll.getElement().getColor() + scroll.getDisplayName())
+                                    .replace("%progress%", progressText));
+                            continue;
+                        }
+
                         if (count >= scroll.getUnlockCount() && plugin.getConfigManager().getConfig().getBoolean("settings.abilityLevelling.enabled", false)) {
                             if (scroll.getMaxReads() > 0 && count >= scroll.getMaxReads()) {
                                 prefix = "&6★"; // Star for maxed abilities
-                                // Don't show progress for maxed abilities
+                                progressText = plugin.getConfigManager().getMessage("commands.progress.maxReadsFormat")
+                                        .replace("%current%", String.valueOf(count))
+                                        .replace("%max%", String.valueOf(scroll.getMaxReads()));
                             } else {
                                 prefix = plugin.getConfigManager().getMessage("commands.progress.unlockedPrefix");
                                 // Show max reads progress if applicable
@@ -193,7 +223,6 @@ public class ScrollCommand implements CommandExecutor, TabCompleter {
                                 }
                             }
                         } else if (count >= scroll.getUnlockCount()) {
-                            //
                             prefix = plugin.getConfigManager().getMessage("commands.progress.unlockedPrefix");
                             progressText = plugin.getConfigManager().getMessage("commands.progress.progressFormat")
                                     .replace("%current%", String.valueOf(count))
@@ -201,13 +230,18 @@ public class ScrollCommand implements CommandExecutor, TabCompleter {
                         } else {
                             prefix = plugin.getConfigManager().getMessage("commands.progress.lockedPrefix");
                             progressText = plugin.getConfigManager().getMessage("commands.progress.progressFormat")
-                                .replace("%current%", String.valueOf(count))
-                                .replace("%required%", String.valueOf(scroll.getUnlockCount()));
+                                    .replace("%current%", String.valueOf(count))
+                                    .replace("%required%", String.valueOf(scroll.getUnlockCount()));
                         }
-                        
+
+                        // Add special indicator for abilities with permissionCanBypassBindHooks
+                        if (scroll.permissionCanBypassBindHooks()) {
+                            prefix = "&b⚡"; // Lightning bolt for permission-bypass abilities
+                        }
+
                         displayLines.add(plugin.getConfigManager().getMessage("commands.progress.abilityFormat")
                             .replace("%prefix%", prefix)
-                            .replace("%name%", scroll.getDisplayName())
+                            .replace("%ability%", scroll.getDisplayName())
                             .replace("%progress%", progressText));
                     }
                 }
@@ -227,30 +261,52 @@ public class ScrollCommand implements CommandExecutor, TabCompleter {
                     if (scroll != null) {
                         String prefix;
                         String progressText = "";
+
+                        if (scroll.permissionCanBypassBindHooks()) {
+                            prefix = "&b⚡";
+                            if (scroll.getMaxReads() > 0 && count >= scroll.getMaxReads()) {
+                                prefix = "&6★";
+                            }
+                            if (count == 0 && !BendingPlayer.getBendingPlayer(player).hasElement(scroll.getElement())) {
+                                continue; // Dont display other elements for hidden abilities unless count > 0
+                            }
+                            progressText = plugin.getConfigManager().getMessage("commands.progress.maxReadsFormat")
+                                    .replace("%current%", String.valueOf(count))
+                                    .replace("%max%", String.valueOf(scroll.getMaxReads()));
+                            displayLines.add(plugin.getConfigManager().getMessage("commands.progress.abilityFormat")
+                                    .replace("%prefix%", prefix)
+                                    .replace("%ability%", scroll.getElement().getColor() + scroll.getDisplayName())
+                                    .replace("%progress%", progressText));
+                            continue;
+                        }
                         
-                        if (count >= scroll.getUnlockCount()) {
+                        if (count >= scroll.getUnlockCount() && plugin.getConfigManager().getConfig().getBoolean("settings.abilityLevelling.enabled", false)) {
                             if (scroll.getMaxReads() > 0 && count >= scroll.getMaxReads()) {
                                 prefix = "&6★"; // Star for maxed abilities
-                                // Don't show progress for maxed abilities
-                            } else {
-                                prefix = plugin.getConfigManager().getMessage("commands.progress.unlockedPrefix");
-                                // Show max reads progress if applicable
-                                if (scroll.getMaxReads() > 0) {
-                                    progressText = plugin.getConfigManager().getMessage("commands.progress.maxReadsFormat")
+                                progressText = plugin.getConfigManager().getMessage("commands.progress.maxReadsFormat")
                                         .replace("%current%", String.valueOf(count))
                                         .replace("%max%", String.valueOf(scroll.getMaxReads()));
-                                }
+                            } else {
+                                prefix = plugin.getConfigManager().getMessage("commands.progress.unlockedPrefix");
+                                progressText = plugin.getConfigManager().getMessage("commands.progress.maxReadsFormat")
+                                        .replace("%current%", String.valueOf(count))
+                                        .replace("%max%", String.valueOf(scroll.getMaxReads()));
                             }
+                        } else if (count >= scroll.getUnlockCount()) {
+                            prefix = plugin.getConfigManager().getMessage("commands.progress.unlockedPrefix");
+                            progressText = plugin.getConfigManager().getMessage("commands.progress.progressFormat")
+                                    .replace("%current%", String.valueOf(count))
+                                    .replace("%required%", String.valueOf(scroll.getUnlockCount()));
                         } else {
                             prefix = plugin.getConfigManager().getMessage("commands.progress.lockedPrefix");
                             progressText = plugin.getConfigManager().getMessage("commands.progress.progressFormat")
-                                .replace("%current%", String.valueOf(count))
-                                .replace("%required%", String.valueOf(scroll.getUnlockCount()));
+                                    .replace("%current%", String.valueOf(count))
+                                    .replace("%required%", String.valueOf(scroll.getUnlockCount()));
                         }
-                        
+
                         displayLines.add(plugin.getConfigManager().getMessage("commands.progress.abilityFormat")
                             .replace("%prefix%", prefix)
-                            .replace("%name%", scroll.getDisplayName())
+                            .replace("%ability%", scroll.getElement().getColor() + scroll.getDisplayName())
                             .replace("%progress%", progressText));
                     }
                 }

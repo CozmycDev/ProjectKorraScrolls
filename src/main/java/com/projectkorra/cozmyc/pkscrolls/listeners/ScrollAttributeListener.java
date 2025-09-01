@@ -48,6 +48,9 @@ public class ScrollAttributeListener implements Listener {
                 ", unlockCount=" + unlockCount);
 
         int postUnlockProgress = Math.max(0, totalProgress - unlockCount);
+        if (scroll.permissionCanBypassBindHooks()) {
+            postUnlockProgress = totalProgress; // If the player has this ability by default via permissions, then we count from the start, not post unlock
+        }
         if (postUnlockProgress <= 0) {
             ProjectKorraScrolls.getInstance().debugLog("Attribute recalculation: No post-unlock progress for " + ability.getName());
             return;
@@ -88,7 +91,6 @@ public class ScrollAttributeListener implements Listener {
 
                 ProjectKorraScrolls.getInstance().debugLog("Current modifications for " + event.getAttribute() + ": " +
                         event.getModifications().size());
-
             } else {
                 ProjectKorraScrolls.getInstance().debugLog("Attribute recalculation: No modification needed for " + event.getAttribute());
             }

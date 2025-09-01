@@ -88,16 +88,26 @@ public class PlayerDataManager {
     public Map<String, Integer> getProgress(Player player) {
         Map<String, Integer> progress = new HashMap<>();
         PersistentDataContainer pdc = player.getPersistentDataContainer();
-        for (String abilityName : plugin.getScrollManager().getAbilityNames()) {
+        
+        // First get all scrolls from ScrollManager
+        for (Scroll scroll : plugin.getScrollManager().getScrolls()) {
+            String abilityName = scroll.getAbilityName();
             NamespacedKey key = plugin.getNamespacedKey("progress_" + abilityName);
             progress.put(abilityName, pdc.getOrDefault(key, PersistentDataType.INTEGER, 0));
         }
+        
         return progress;
     }
 
     public void setProgress(Player player, String abilityName, int progress) {
         PersistentDataContainer pdc = player.getPersistentDataContainer();
         pdc.set(plugin.getNamespacedKey("progress_" + abilityName), PersistentDataType.INTEGER, progress);
+    }
+
+    public void unlockAbility(Player player, String abilityName) {
+        ProjectKorraScrolls.getInstance().debugLog("Manually unlocking ability for " + player.getName() + ": " + abilityName);
+        PersistentDataContainer pdc = player.getPersistentDataContainer();
+        pdc.set(plugin.getNamespacedKey("unlocked_" + abilityName), PersistentDataType.BYTE, (byte) 1);
     }
 
     // legacy updater from the early versions

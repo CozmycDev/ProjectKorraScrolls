@@ -4,11 +4,7 @@ import com.projectkorra.cozmyc.pkscrolls.ProjectKorraScrolls;
 import com.projectkorra.cozmyc.pkscrolls.models.Scroll;
 import com.projectkorra.projectkorra.BendingPlayer;
 import com.projectkorra.projectkorra.Element;
-import com.projectkorra.projectkorra.ability.AddonAbility;
-import com.projectkorra.projectkorra.ability.ComboAbility;
-import com.projectkorra.projectkorra.ability.CoreAbility;
-import com.projectkorra.projectkorra.ability.MultiAbility;
-import com.projectkorra.projectkorra.ability.PassiveAbility;
+import com.projectkorra.projectkorra.ability.*;
 import com.projectkorra.projectkorra.attribute.AttributeCache;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -17,18 +13,13 @@ import org.bukkit.entity.Player;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
 public class ScrollManager {
 
     private final ProjectKorraScrolls plugin;
     private final Map<String, Scroll> scrolls = new HashMap<>();
+    private final ArrayList<String> hiddenAbilities = new ArrayList<>();
     private final Random random;
 
     public ScrollManager(ProjectKorraScrolls plugin) {
@@ -45,9 +36,14 @@ public class ScrollManager {
             scrollsDir.mkdirs();
         }
 
+        // todo: Testing, until I find a cleaner way to bring in hidden abilities/passives/etc
         for (CoreAbility ability : CoreAbility.getAbilities()) {
-            if (ability.isHiddenAbility() || !ability.isEnabled()) {
+            if (!ability.isEnabled()) {
                 continue;
+            }
+
+            if (ability.isHiddenAbility()) {
+                hiddenAbilities.add(ability.getName());
             }
 
             String abilityName = ability.getName();
@@ -115,16 +111,34 @@ public class ScrollManager {
             scrollConfig.set("unlockCount", unlockCount);
         }
         if (!scrollConfig.contains("maxReads")) {
-            scrollConfig.set("maxReads", 6);
+            scrollConfig.set("maxReads", unlockCount);
         }
-        if (!scrollConfig.contains("canDrop")) {
-            scrollConfig.set("canDrop", true);
-        }
-        if (!scrollConfig.contains("canLoot")) {
-            scrollConfig.set("canLoot", true);
-        }
-        if (!scrollConfig.contains("canTrialLoot")) {
-            scrollConfig.set("canTrialLoot", true);
+        if (hiddenAbilities.contains(ability.getName())) {
+            if (!scrollConfig.contains("canDrop")) {
+                scrollConfig.set("canDrop", false);
+            }
+            if (!scrollConfig.contains("canLoot")) {
+                scrollConfig.set("canLoot", false);
+            }
+            if (!scrollConfig.contains("canTrialLoot")) {
+                scrollConfig.set("canTrialLoot", false);
+            }
+            if (!scrollConfig.contains("permissionCanBypassBindHooks")) {
+                scrollConfig.set("permissionCanBypassBindHooks", true);
+            }
+        } else {
+            if (!scrollConfig.contains("canDrop")) {
+                scrollConfig.set("canDrop", true);
+            }
+            if (!scrollConfig.contains("canLoot")) {
+                scrollConfig.set("canLoot", true);
+            }
+            if (!scrollConfig.contains("canTrialLoot")) {
+                scrollConfig.set("canTrialLoot", true);
+            }
+            if (!scrollConfig.contains("permissionCanBypassBindHooks")) {
+                scrollConfig.set("permissionCanBypassBindHooks", false);
+            }
         }
         if (!scrollConfig.contains("modelData")) {
             scrollConfig.set("modelData", modelData);
@@ -254,18 +268,18 @@ public class ScrollManager {
     }
 
     private int getDefaultUnlockCountForAbility(CoreAbility ability, String elementName) {
-        int unlockCount = 2;
+        int unlockCount = 3;
         if (ability instanceof AddonAbility) {
-            unlockCount = 4;
+            unlockCount = 5;
         }
         if (ability instanceof ComboAbility) {
-            unlockCount = 3;
+            unlockCount = 4;
         }
         if (ability instanceof MultiAbility) {
             unlockCount = 5;
         }
         if (ability instanceof PassiveAbility) {
-            unlockCount = 1;
+            unlockCount = 2;
         }
         if (elementName.equalsIgnoreCase("AVATAR")) {
             unlockCount = 10;
@@ -283,6 +297,30 @@ public class ScrollManager {
 
     public List<Scroll> getScrolls() {
         return new ArrayList<>(scrolls.values());
+    }
+
+    public void saveScrollChanges(Scroll scroll) {
+        String abilityName = scroll.getAbilityName();
+        Element element = scroll.getElement();
+        String elementName = element.getName();
+
+        File scrollFile = new File(plugin.getDataFolder(), 
+            "scrolls/" + elementName + "/" + abilityName + ".yml");
+        YamlConfiguration scrollConfig = YamlConfiguration.loadConfiguration(scrollFile);
+
+        // Update basic properties
+        scrollConfig.set("displayName", scroll.getDisplayName());
+        scrollConfig.set("unlockCount", scroll.getUnlockCount());
+        scrollConfig.set("maxReads", scroll.getMaxReads());
+        scrollConfig.set("permissionCanBypassBindHooks", scroll.permissionCanBypassBindHooks());
+
+        // Save the config
+        try {
+            scrollConfig.save(scrollFile);
+            plugin.debugLog("Saved changes for scroll: " + abilityName);
+        } catch (IOException e) {
+            plugin.debugLog("Failed to save changes for scroll " + abilityName + ": " + e.getMessage());
+        }
     }
 
     // Filter the input scroll list by the players elements *with respect to the configuration*

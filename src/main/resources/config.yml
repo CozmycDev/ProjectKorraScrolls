@@ -14,6 +14,7 @@ settings:
   # Element-specific settings
   elementSpecific:
     randomIfNoElement: true  # Whether to give random scrolls if player has no element, disables scroll generations for non-benders if false
+    requireElementToRead: true # Whether the players need the scrolls element
 
   # Early Game Rewards - give new players a small boost with rewards specific to their element
   earlyGameRewards:
@@ -113,7 +114,7 @@ messages:
       elementHeader: "&8&l[&b%element%&8&l]"
       unlockedPrefix: "&a✓"
       lockedPrefix: "&c✗"
-      abilityFormat: "%prefix% &7%name%%progress%"
+      abilityFormat: "%prefix% &7%ability%%progress%"
       noProgress: "&cYou haven't made progress on any abilities yet."
       scrollNotFound: "&cScroll not found for ability: %ability%"
       progressFormat: " &8[&e%current%&7/&e%required%&8]"

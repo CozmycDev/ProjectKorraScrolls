@@ -6,7 +6,7 @@
 
     <groupId>com.cozmyc</groupId>
     <artifactId>ProjectKorraScrolls</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0-SNAPSHOT-3</version>
     <packaging>jar</packaging>
 
     <name>ProjectKorraScrolls</name>
@@ -40,6 +40,12 @@
             <artifactId>projectkorra</artifactId>
             <version>1.12.0</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>26.0.2</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 
